@@ -3,6 +3,15 @@ const app = require('express')();
 const http = require('http').Server(app);
 const bodyParser = require('body-parser');
 
+const Bull = require('bull');
+const Arena = require('bull-arena');
+const bullQueue = require('./services/bullQueue');
+
+const arena = Arena({
+    Bull: Bull,
+    queues: bullQueue
+})
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json())
 

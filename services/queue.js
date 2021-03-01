@@ -10,24 +10,18 @@ const redisOpt = {
 
 console.log("STARTING QUEUE")
 
-// const generateAbsence = queues.absenceQueue;
-// const generateLeave = queues.leaveQueue;
-// const generateSalary = queues.salaryQueue;
 const generateAbsence = new bull('generate-absence', { redis: redisOpt });
 const generateLeave = new bull('generate-leave', { redis: redisOpt });
 const generateSalary = new bull('generate-salary', { redis: redisOpt });
 
-generateAbsence.process(async job => {
-    console.log("PROCESSING DATA ABSENCE", job.data.empNo);
-    return employee.generateAbsence(job.data.empNo);
+generateAbsence.process('generate-absence', async job => {
+    return employee.generateAbsence(job.data);
 });
 
-generateLeave.process(async job => {
-    console.log("PROCESSING DATA LEAVE", job.data);
-    return employee.generateLeave(job.data)
+generateLeave.process('generate-leave', async job => {
+    return employee.generateLeave(job.data);
 });
 
-generateSalary.process(async job => {
-    console.log("PROCESSING DATA SALARY", job.data);
+generateSalary.process('generate-salary', async job => {
     return employee.generateSalary(job.data)
 })
