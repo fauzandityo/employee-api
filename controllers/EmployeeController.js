@@ -4,7 +4,6 @@ const queues = require('../config/queues')
 
 module.exports = {
     loadAbsence: (req, res) => {
-        const pandemic = parseInt(req.query.pandemic);
         console.log("RECEIVE REQUEST", req.query)
 
         employeeMod.createTableAbsence();
@@ -35,18 +34,18 @@ module.exports = {
             LEFT JOIN titles t on t.emp_no = e.emp_no
         `, (err, result, fields) => {
             if (err) throw err;
-            let avgAge = result.reduce((acc, val) => {
+            let avgAge = result.reduce((record, val) => {
                 let { age, title } = val;
-                if(!acc.hasOwnProperty(title)){
-                   acc[title] = {
+                if(!record.hasOwnProperty(title)){
+                   record[title] = {
                       'count': 0,
                       'total': 0
                    };
                 };
-                const accuKey = acc[title];
-                accuKey['count']++;
-                accuKey['total'] += age;
-                accuKey['average'] = (accuKey['total'] / accuKey['count']).toFixed(2);
+                const recordKey = record[title];
+                recordKey['count']++;
+                recordKey['total'] += age;
+                recordKey['average'] = (recordKey['total'] / recordKey['count']).toFixed(2);
                 return acc;
              }, {});
             res.json({
@@ -62,18 +61,18 @@ module.exports = {
             LEFT JOIN titles t on t.emp_no = s.emp_no
         `, (err, result, fields) => {
             if (err) throw err;
-            let avgAge = result.reduce((acc, val) => {
+            let avgAge = result.reduce((record, val) => {
                 let { salary, title } = val;
-                if(!acc.hasOwnProperty(title)){
-                   acc[title] = {
+                if(!record.hasOwnProperty(title)){
+                   record[title] = {
                       'count': 0,
                       'total': 0
                    };
                 };
-                const accuKey = acc[title];
-                accuKey['count']++;
-                accuKey['total'] += salary;
-                accuKey['average'] = (accuKey['total'] / accuKey['count']).toFixed(2);
+                const recordKey = record[title];
+                recordKey['count']++;
+                recordKey['total'] += salary;
+                recordKey['average'] = (recordKey['total'] / recordKey['count']).toFixed(2);
                 return acc;
              }, {});
             res.json({
