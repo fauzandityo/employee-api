@@ -1,20 +1,20 @@
 const db = require('../config/database');
 const employeeMod = require('../models/employee');
-const services = require('../services/queue')
+const queues = require('../config/queues')
 
 module.exports = {
     loadAbsence: (req, res) => {
-        // const limit = parseInt(req.query.limit);
-        // const offset = parseInt(req.query.offset);
+        const limit = parseInt(req.query.limit);
+        const offset = parseInt(req.query.offset);
         const pandemic = parseInt(req.query.pandemic);
         console.log("RECEIVE REQUEST", req.query)
 
         employeeMod.createTableAbsence();
         employeeMod.createTableLeave();
 
-        const absenceQueue = services.absenceQueue;
-        // db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset])
-        db.query(`SELECT emp_no FROM employees`)
+        const absenceQueue = queues.absenceQueue;
+        // db.query(`SELECT emp_no FROM employees`)
+        db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset])
         .on('error', (error) => {
             throw error;
         })
@@ -25,17 +25,10 @@ module.exports = {
             absenceQueue.add({ empNo: employee.emp_no });
             db.resume();
         })
-        .on('end', () => {
-            absenceQueue.process(async job => {
-                // console.log("PROCESSING DATA ABSENCE", job.data.empNo);
-                return employeeMod.generateAbsence(job.data.empNo)
-            });
-            
-        })
         
-        const leaveQueue = services.leaveQueue;
-        // db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset],
-        db.query(`SELECT emp_no FROM employees`,
+        const leaveQueue = queues.leaveQueue;
+        // db.query(`SELECT emp_no FROM employees`,
+        db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset],
         (err, result, fields) => {
             if (err) throw err;
 
@@ -53,15 +46,9 @@ module.exports = {
             .on('result', (employee) => {
                 leaveQueue.add({ empNo: employee.emp_no, empGen: employee.gender });
             })
-            .on('end', () => {
-                leaveQueue.process(async job => {
-                    // console.log("PROCESSING DATA LEAVE", job.data);
-                    return employeeMod.generateLeave(job.data)
-                })
-            })
         })
 
-        const salaryQueue = services.salaryQueue;
+        const salaryQueue = queues.salaryQueue;
         db.query(`
             SELECT ea.emp_no,
                 AVG(DATE_FORMAT(ea.end_date, '%T') - DATE_FORMAT(ea.start_date, '%T')) AS working_hour,
@@ -94,12 +81,6 @@ module.exports = {
                 empTitle: employee.emp_title,
                 pandemic: pandemic
             });
-        })
-        .on('end', () => {
-            salaryQueue.process(async job => {
-                console.log("PROCESSING DATA SALARY", job.data);
-                return employeeMod.generateSalary(job.data)
-            })
         })
 
         db.query(`
