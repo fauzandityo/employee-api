@@ -8,7 +8,6 @@ module.exports = {
         let offset = parseInt(proData.offset);
         return new Promise((resolve, reject) => {
             console.log("PROCESSING DATA ABSENCE");
-            let dataToStore = [];
             // db.query(`SELECT emp_no FROM employees`)
             db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset])
             .on('error', (error) => {
@@ -17,6 +16,7 @@ module.exports = {
             .on('result', (employee) => {
                 db.pause();
                 console.log("START STREAM", employee.emp_no);
+                let dataToStore = [];
                 // Preparing date range (now - 3 month) <= now
                 let now = moment();
                 let deltaMonth = moment().subtract(3, 'months');
@@ -35,9 +35,6 @@ module.exports = {
                     
                     deltaMonth = deltaMonth.add(1, 'day');
                 }
-                db.resume();
-            })
-            .on('end', () => {
                 // Insert absence
                 db.query(`
                     INSERT INTO emp_absence
@@ -48,6 +45,7 @@ module.exports = {
                     if (err) reject(err);
                     resolve(result);
                 })
+                db.resume();
             })
         })
     },
