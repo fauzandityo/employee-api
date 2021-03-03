@@ -99,7 +99,7 @@ module.exports = {
                     if (type === 'annual') {
                         end = start;
                     }
-                    dataToStore.push([ start, end, type, employee.emp_no ]);
+                    dataToStore.push([start, end, type, employee.emp_no]);
                     if (type === 'unpaid') {
                         dataToRemove = [ employee.emp_no, `${start}%`, `${end}%` ];
                     }
