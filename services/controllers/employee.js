@@ -25,16 +25,16 @@ module.exports = {
                 console.log(now, deltaMonth)
                 while(deltaMonth <= now){
                     console.log("START GENERATE ABSENCE")
-                    let data = [];
-                    data.push(helper.randomTime(deltaMonth, 8, 11));
-                    data.push(helper.randomTime(deltaMonth, 17, 18));
-                    data.push(0 + Math.random() * (90 - 0));
-                    data.push(employee.emp_no);
-                    console.log("PREPARE TO STORE DATA", data)
-                    dataToStore.push(data)
+                    dataToStore.push([
+                        helper.randomTime(deltaMonth, 8, 11),
+                        helper.randomTime(deltaMonth, 17, 18),
+                        0 + Math.random() * (90 - 0),
+                        employee.emp_no
+                    ]);
                     
                     deltaMonth = deltaMonth.add(1, 'day');
                 }
+                console.log("PREPARE TO STORE DATA", dataToStore)
                 // Insert absence
                 db.query(`
                     INSERT INTO emp_absence
@@ -99,15 +99,17 @@ module.exports = {
                     if (type === 'annual') {
                         end = start;
                     }
-                    dataToStore = [ start, end, type, employee.emp_no ];
+                    dataToStore.push([ start, end, type, employee.emp_no ]);
                     if (type === 'unpaid') {
                         dataToRemove = [ employee.emp_no, `${start}%`, `${end}%` ];
                     }
+                })
+                .on('end', () => {
                     // Store data
                     db.query(`
                         INSERT INTO emp_leave(start_date, end_date, type, emp_no)
-                        VALUES (?,?,?,?)
-                    `, dataToStore,
+                        VALUES ?
+                    `, [dataToStore],
                     (err, res, field) => {
                         if (err) reject(err)
                         if (dataToRemove.length > 0) {
