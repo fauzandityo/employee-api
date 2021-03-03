@@ -103,6 +103,17 @@ module.exports = {
                     if (type === 'unpaid') {
                         dataToRemove = [ employee.emp_no, `${start}%`, `${end}%` ];
                     }
+                    if (dataToRemove.length > 0) {
+                        db.query(`
+                            DELETE FROM emp_absence
+                            WHERE emp_no = ?
+                                AND (start_date LIKE ? OR start_date LIKE ?)
+                        `, dataToRemove,
+                        (err, result, field) => {
+                            if (err) reject(err)
+                            resolve(result);
+                        })
+                    }
                 })
                 .on('end', () => {
                     // Store data
@@ -112,17 +123,6 @@ module.exports = {
                     `, [dataToStore],
                     (err, res, field) => {
                         if (err) reject(err)
-                        if (dataToRemove.length > 0) {
-                            db.query(`
-                                DELETE FROM emp_absence
-                                WHERE emp_no = ?
-                                    AND (start_date LIKE ? OR start_date LIKE ?)
-                            `, dataToRemove,
-                            (err, result, field) => {
-                                if (err) reject(err)
-                                resolve(result);
-                            })
-                        }
                         resolve(res);
                     })
                 })
