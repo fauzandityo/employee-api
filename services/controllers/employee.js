@@ -101,7 +101,7 @@ module.exports = {
                     }
                     dataToStore.push([start, end, type, employee.emp_no]);
                     if (type === 'unpaid') {
-                        dataToRemove = [ employee.emp_no, `${start}%`, `${end}%` ];
+                        dataToRemove = [employee.emp_no, `${start}%`, `${end}%`];
                     }
                     if (dataToRemove.length > 0) {
                         db.query(`
@@ -218,8 +218,8 @@ module.exports = {
                 console.log("GET FINAL SALARY", finSalary)
         
                 // Prepare data
-                let dataToUpdate = [ now, empNo, moment(startSalary).format('YYYY-MM-DD') ];
-                let dataToStore = [ empNo, parseInt(finSalary), now, '9999-01-01' ]
+                let dataToUpdate = [now, empNo, moment(startSalary).format('YYYY-MM-DD')];
+                let dataToStore = [empNo, parseInt(finSalary), now, '9999-01-01']
                 db.query(`
                     UPDATE salaries
                     SET to_date = ?
