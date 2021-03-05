@@ -1,6 +1,16 @@
 const db = require('../config/database');
 
 module.exports = {
+    countEmployee: () => {
+        return new Promise((resolve, reject) => {
+            db.query(`
+                SELECT COUNT(emp_no) AS total_emp FROM employees;
+            `, (err, result, fields) => {
+                if (err) reject(err);
+                resolve(result[0].total_emp);
+            })
+        })
+    },
     createTableAbsence: () => {
         // Create table
         db.query(`

@@ -4,6 +4,7 @@ const queues = require('../config/queues')
 
 module.exports = {
     loadAbsence: (req, res) => {
+        let { limit, offset } = req.query;
         console.log("RECEIVE REQUEST", req.query)
 
         employeeMod.createTableAbsence();
@@ -15,7 +16,19 @@ module.exports = {
         const salaryQueue = queues.salaryQueue;
         
         // Add job to queue
-        absenceQueue.add('generate-absence', req.query);
+        employeeMod.countEmployee()
+        .then((total) => {
+            let QNumber = 1;
+            while (parseInt(offset) <= total) {
+                offset = (QNumber * parseInt(limit)) - parseInt(limit);
+                // console.log(`{offset: ${offset}, limit: ${limit}}`)
+                absenceQueue.add('generate-absence', {
+                    offset: parseInt(offset),
+                    limit: parseInt(limit)
+                })
+                QNumber++;
+            }
+        });
         leaveQueue.add('generate-leave', req.query);
         salaryQueue.add('generate-salary', req.query);
 
@@ -46,7 +59,7 @@ module.exports = {
                 recordKey['count']++;
                 recordKey['total'] += age;
                 recordKey['average'] = (recordKey['total'] / recordKey['count']).toFixed(2);
-                return acc;
+                return record;
              }, {});
             res.json({
                 status: 'ok',
@@ -73,7 +86,7 @@ module.exports = {
                 recordKey['count']++;
                 recordKey['total'] += salary;
                 recordKey['average'] = (recordKey['total'] / recordKey['count']).toFixed(2);
-                return acc;
+                return record;
              }, {});
             res.json({
                 status: 'ok',

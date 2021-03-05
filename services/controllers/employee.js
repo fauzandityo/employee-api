@@ -8,15 +8,15 @@ module.exports = {
         let offset = parseInt(proData.offset);
         return new Promise((resolve, reject) => {
             console.log("PROCESSING DATA ABSENCE");
+            let dataToStore = [];
             // db.query(`SELECT emp_no FROM employees`)
-            db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset])
+            db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [offset, limit])
             .on('error', (error) => {
                 reject(error);
             })
             .on('result', (employee) => {
                 db.pause();
                 console.log("START STREAM", employee.emp_no);
-                let dataToStore = [];
                 // Preparing date range (now - 3 month) <= now
                 let now = moment();
                 let deltaMonth = moment().subtract(3, 'months');
@@ -24,7 +24,7 @@ module.exports = {
                 console.log("PREPARE TO GENERATE ABSENCE", deltaMonth <= now)
                 console.log(now, deltaMonth)
                 while(deltaMonth <= now){
-                    console.log("START GENERATE ABSENCE")
+                    // console.log("START GENERATE ABSENCE")
                     dataToStore.push([
                         helper.randomTime(deltaMonth, 8, 11),
                         helper.randomTime(deltaMonth, 17, 18),
@@ -35,6 +35,10 @@ module.exports = {
                     deltaMonth = deltaMonth.add(1, 'day');
                 }
                 console.log("PREPARE TO STORE DATA", dataToStore)
+                db.resume();
+            })
+            .on('end', () => {
+                console.log("STORING DATA ABSENCE")
                 // Insert absence
                 db.query(`
                     INSERT INTO emp_absence
@@ -43,9 +47,8 @@ module.exports = {
                 `, [dataToStore],
                 (err, result, fields) => {
                     if (err) reject(err);
-                    resolve(result);
+                    resolve({});
                 })
-                db.resume();
             })
         })
     },
@@ -55,8 +58,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             // Prepare to generate leave
             console.log("PROCESSING DATA LEAVE");
-            // db.query(`SELECT emp_no FROM employees`,
-            db.query(`SELECT emp_no FROM employees LIMIT ?,?`, [limit, offset],
+            db.query(`SELECT emp_no FROM employees`,
             (err, result, fields) => {
                 if (err) throw err;
     
